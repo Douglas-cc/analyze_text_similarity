@@ -2,10 +2,23 @@ import numpy as np
 import pandas as pd 
 
 from jellyfish import(
-    match_rating_comparison, 
     jaro_winkler_similarity,
-    jaro_similarity
+    jaro_similarity,
+    match_rating_comparison
 )
+
+def group_similarity(df, column_a, column_b):
+    itens_a = df[[column_a]].rename(columns={f'{column_a}':'itens'})
+    itens_b = df[[column_b]].rename(columns={f'{column_b}':'itens'})
+
+    df = pd.concat([itens_a, itens_b]).drop_duplicates()
+    
+    df['predito'] = [1 for i in range(df.shape[0])]
+    
+    return df
+
+def regex_similarity(word, regex, itens):
+    return [i for i in itens for match in regex.finditer(i) if word == match.group(1)]
 
 def creat_class(value_similar, bins, labels):
    return pd.cut(value_similar, bins = bins, labels = labels).astype('string')
@@ -26,7 +39,7 @@ def similarity_matrix(list_strings, metric):
     if metric == 'jaro_winkler':
         for x in range(size):
             for y in range(x, size):
-                matrix[x][y] = jaro_winkler_similarity(list_strings[x], list_strings[y])        
+                matrix[x][y] = jaro_winkler_similarity(list_strings[x], list_strings[y])
     elif metric == 'jaro':
         for x in range(size):
             for y in range(x, size):
